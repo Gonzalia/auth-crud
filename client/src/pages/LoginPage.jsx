@@ -12,7 +12,8 @@ const LoginPage = () => {
   const { signin, errors: signInErrors } = useAuth();
   const onSubmit = handleSubmit(async (data) => {
     try {
-      signin(data);
+      await signin(data);
+      return <Navigate to={"/tasks"} />;
     } catch (error) {
       console.error(error);
     }

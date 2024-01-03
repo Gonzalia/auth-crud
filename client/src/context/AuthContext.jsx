@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { loginRequest, registerRequest } from "../api/auth";
+import { Navigate } from "react-router-dom";
 
 export const AuthContext = createContext();
 
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   const signin = async (user) => {
     try {
       const res = await loginRequest(user);
-      console.log(res);
+      setIsAuthenticated(true);
     } catch (error) {
       if (Array.isArray(error.response.data))
         return setErrors(error.response.data);
