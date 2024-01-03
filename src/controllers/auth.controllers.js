@@ -6,6 +6,16 @@ export const register = async (req, res) => {
   const { email, password, username } = req.body;
 
   try {
+    const userFound = await User.findOne({ email });
+    if (userFound) return res.status(400).json(["Email is already exists"]);
+
+    const userFoundByName = await User.findOne({ username });
+    if (userFoundByName)
+      return res.status(400).json(["Username is already exists"]);
+
+    if (password.length < 6)
+      return res.status(400).json(["Password must be at least 6 characters"]);
+
     const hashedPass = await bcrypt.hash(password, 10);
     const newUser = new User({
       username,
@@ -37,8 +47,7 @@ export const login = async (req, res) => {
     if (!userFound) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, userFound.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) return res.status(400).json("Invalid credentials");
 
     const token = await createAccessToken({ id: userFound._id });
     res.cookie("token", token);
