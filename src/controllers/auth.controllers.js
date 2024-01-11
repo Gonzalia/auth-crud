@@ -1,6 +1,8 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { createAccessToken } from "../libs/jwt.js";
+import Jwt from "jsonwebtoken";
+import { TOKEN_SECRET } from "../config.js";
 
 export const register = async (req, res) => {
   const { email, password, username } = req.body;
@@ -25,7 +27,11 @@ export const register = async (req, res) => {
 
     const userSaved = await newUser.save();
     const token = await createAccessToken({ id: userSaved._id });
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: process.env.NODE_ENV !== "development",
+      secure: true,
+      sameSite: "none",
+    });
     res.json({
       id: userSaved._id,
       username: userSaved.username,
@@ -50,7 +56,11 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(400).json("Invalid credentials");
 
     const token = await createAccessToken({ id: userFound._id });
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: process.env.NODE_ENV !== "development",
+      secure: true,
+      sameSite: "none",
+    });
     res.json({
       id: userFound._id,
       username: userFound.username,
@@ -81,5 +91,21 @@ export const profile = async (req, res) => {
     email: userFound.email,
     createdAt: userFound.createdAt,
     updatedAt: userFound.updatedAt,
+  });
+};
+
+export const verifyToken = async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) return res.send(401).json({ message: "Unauthorized" });
+
+  Jwt.verifyToken(token, TOKEN_SECRET, async (err, user) => {
+    if (err) return res.send(401).json({ message: "Unauthorized" });
+    const userFound = await User.findById(user.id);
+    if (!userFound) return res.send(404).json({ message: "User not found" });
+    return {
+      id: userFound._id,
+      username: userFound.username,
+      email: userFound.email,
+    };
   });
 };
