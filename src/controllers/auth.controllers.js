@@ -28,9 +28,7 @@ export const register = async (req, res) => {
     const userSaved = await newUser.save();
     const token = await createAccessToken({ id: userSaved._id });
     res.cookie("token", token, {
-      httpOnly: process.env.NODE_ENV !== "development",
       secure: true,
-      sameSite: "none",
     });
     res.json({
       id: userSaved._id,
@@ -57,7 +55,7 @@ export const login = async (req, res) => {
 
     const token = await createAccessToken({ id: userFound._id });
     res.cookie("token", token, {
-      httpOnly: process.env.NODE_ENV !== "development",
+      httpOnly: true,
       secure: true,
       sameSite: "none",
     });
@@ -96,16 +94,18 @@ export const profile = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
   const { token } = req.cookies;
-  if (!token) return res.send(401).json({ message: "Unauthorized" });
+  if (!token) return res.send(false);
 
-  Jwt.verifyToken(token, TOKEN_SECRET, async (err, user) => {
-    if (err) return res.send(401).json({ message: "Unauthorized" });
+  Jwt.verify(token, TOKEN_SECRET, async (error, user) => {
+    if (error) return res.sendStatus(401);
+
     const userFound = await User.findById(user.id);
-    if (!userFound) return res.send(404).json({ message: "User not found" });
-    return {
+    if (!userFound) return res.sendStatus(401);
+
+    return res.json({
       id: userFound._id,
       username: userFound.username,
       email: userFound.email,
-    };
+    });
   });
 };

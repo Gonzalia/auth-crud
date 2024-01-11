@@ -12,21 +12,32 @@ export const getTaskByID = async (req, res) => {
   res.json(taskByID);
 };
 export const createTask = async (req, res) => {
-  const { title, description, date } = req.body;
-  const newTask = new Task({
-    title,
-    description,
-    date,
-    user: req.user.id,
-  }).populate("user", "username email");
-  const savedTask = await newTask.save();
-  res.json(savedTask);
+  try {
+    const { title, description, date } = req.body;
+
+    const newTask = new Task({
+      title,
+      description,
+      date,
+      user: req.user.id,
+    });
+    await newTask.save();
+    res.json(newTask);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 export const deleteTask = async (req, res) => {
-  const taskByID = await Task.findByIdAndDelete(req.params.id);
-  if (!taskByID) return res.status(404).json({ message: "Task not found" });
-  return res.sendStatus(204).json({ message: "ok" });
+  try {
+    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+    if (!deletedTask)
+      return res.status(404).json({ message: "Task not found" });
+
+    return res.sendStatus(204);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 };
 
 export const updateTask = async (req, res) => {
