@@ -30,7 +30,7 @@ const LoginPage = () => {
             {error}
           </div>
         ))}
-        <h1 className="text-2xl font-bold">Login</h1>
+        <h1 className="text-3xl font-bold my-2">Login</h1>
         <form onSubmit={onSubmit}>
           <input
             type="email"
@@ -48,7 +48,7 @@ const LoginPage = () => {
           {errors.password && (
             <p className="text-red-500">Password is required</p>
           )}
-          <button type="submit">Login</button>
+          <button type="submit" className="font-bold bg-sky-500 px-3 py-2 rounded-lg my-2">Login</button>
         </form>
         <p className="flex gap-x-2 justify-between">
           Dont have an account?{" "}
